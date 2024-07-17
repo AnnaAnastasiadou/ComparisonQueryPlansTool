@@ -13,7 +13,7 @@ class TreeNode:
         return f"TreeNode({self.label}, {self.children})"
 
 # Function to convert JSON to TreeNode
-def json_to_tree(json_obj):
+def json_to_tree(json_obj, file_name):
     # Debugging: Print the type and content of json_obj
     #print("json_obj type:", type(json_obj))
     #print("json_obj content:", json_obj)
@@ -37,6 +37,7 @@ def json_to_tree(json_obj):
     red = "\033[91m"
     white = "\033[0m"
     green = "\033[92m"
+    yellow = "\033[93m"
     
     attributes = ['CTE Name', 'Cache Key', 'Filter', 'Group Key', 'Hash Cond',
        'Hash Key', 'Index Cond', 'Index Name', 'Join Filter', 'Join Type',
@@ -45,7 +46,7 @@ def json_to_tree(json_obj):
 
     for attr in attributes:
         if attr not in json_obj:
-            json_obj[attr] = f'{red}None{white}'
+            json_obj[attr] = "None"#f'{red}None{white}'
 
     match label:
         case "Seq Scan":
@@ -55,20 +56,20 @@ def json_to_tree(json_obj):
         case "Index Scan":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Relation Name": "' + str(json_obj["Relation Name"]) + '"'
-            str_combined += ', "Index Name": "' + str(json_obj["Index Name"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "Index Name": "' + str(json_obj["Index Name"]) + '"'
             str_combined += ', "Index Cond": "' + str(json_obj["Index Cond"]) + '"'
         case "Index Only Scan":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Relation Name": "' + str(json_obj["Relation Name"]) + '"'
-            str_combined += ', "Index Name": "' + str(json_obj["Index Name"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "Index Name": "' + str(json_obj["Index Name"]) + '"'
             str_combined += ', "Index Cond": "' + str(json_obj["Index Cond"]) + '"'
         case "Bitmap Heap Scan":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Relation Name": "' + str(json_obj["Relation Name"]) + '"'
-            str_combined += ', "Recheck Cond": "' + str(json_obj["Recheck Cond"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "Recheck Cond": "' + str(json_obj["Recheck Cond"]) + '"'
         case "Bitmap Index Scan":
             str_combined += ', "Index Name": "' + str(json_obj["Index Name"]) + '"'
             str_combined += ', "Index Cond": "' + str(json_obj["Index Cond"]) + '"'
@@ -78,21 +79,21 @@ def json_to_tree(json_obj):
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
         case "Hash Join":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
+            str_combined += ', "Join Filter": "' + str(json_obj["Join Filter"]) + '"'
+            str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
             str_combined += ', "Hash Cond": "' + str(json_obj["Hash Cond"]) + '"'
-            str_combined += ', "Join Filter": "' + str(json_obj["Join Filter"]) + '"'
             str_combined += ', "Join Type": "' + str(json_obj["Join Type"]) + '"'
-            str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
         case "Merge Join":
-            str_combined += ', "Join Filter": "' + str(json_obj["Join Filter"]) + '"'
-            str_combined += ', "Join Type": "' + str(json_obj["Join Type"]) + '"'
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
-            str_combined += ', "Merge Cond": "' + str(json_obj["Merge Cond"]) + '"'
+            str_combined += ', "Join Filter": "' + str(json_obj["Join Filter"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "Join Type": "' + str(json_obj["Join Type"]) + '"'
+            str_combined += ', "Merge Cond": "' + str(json_obj["Merge Cond"]) + '"'
         case "Nested Loop":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Join Filter": "' + str(json_obj["Join Filter"]) + '"'
-            str_combined += ', "Join Type": "' + str(json_obj["Join Type"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "Join Type": "' + str(json_obj["Join Type"]) + '"'
         case "Aggregate":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Group Key": "' + str(json_obj["Group Key"]) + '"'
@@ -110,32 +111,45 @@ def json_to_tree(json_obj):
         case "Sort":
             str_combined += ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+        case "Incremental Sort":
+            str_combined += ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
+            str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+        case "Subquery Scan":
+            str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
+            str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
         case _:
             raise(Exception(f"{red}Unsupported Node Type: [{label}]{white}"))
         
     str_combined += "}"
-    str_combined = str_combined.replace("::datee", "")
-    str_combined = str_combined.replace("::date", "")
-    str_combined = str_combined.replace("::numericc", "")
-    str_combined = str_combined.replace("::numeric", "")
-    str_combined = str_combined.replace("::textt", "")
-    str_combined = str_combined.replace("::text", "")
-    str_combined = str_combined.replace("::intt", "")#f"{green}::int{white}")
-    str_combined = str_combined.replace("::int", "")#f"{green}::int{white}")
+    str_combined = re.sub(r'\'\((.*?)\)\'', r"'\1'", str_combined)
+    str_combined = re.sub(r'\(([^()\s]+)\)::date', r'\1::date', str_combined)
+    str_combined = re.sub(r'\(([^()\s]+)\)::numeric', r'\1::numeric', str_combined)
+    str_combined = re.sub(r'\(([^()\s]+)\)::text', r'\1::text', str_combined)
+    str_combined = re.sub(r'\(([^()\s]+)\)::int', r'\1::int', str_combined)
+    str_combined = str_combined.replace("::datee", f"")
+    str_combined = str_combined.replace("::date", f"")
+    str_combined = str_combined.replace("::numericc", f"")
+    str_combined = str_combined.replace("::numeric", f"")
+    str_combined = str_combined.replace("::textt", f"")
+    str_combined = str_combined.replace("::text", f"")
+    str_combined = str_combined.replace("::intt", f"")#f"{green}::int{white}")
+    str_combined = str_combined.replace("::int", f"")#f"{green}::int{white}")
 
-    str_combined = re.sub(r'\'(\d+\.\d+)\'', r'\1', str_combined)
-    str_combined = re.sub(r'\'(\d+)\'', r'\1', str_combined)
-
+    str_combined = re.sub(r'\'([0-9]+\.[0-9]+)\'', r'\1', str_combined)
+    str_combined = re.sub(r'\'([0-9]+)\'', r'\1', str_combined)
+    
     # print(str_combined)
+    with open(file_name, "a", encoding="utf-8") as file:
+        file.write(str_combined + "\n")
 
-    children = [json_to_tree(child) for child in json_obj.get("Plans", [])]
+    children = [json_to_tree(child,file_name) for child in json_obj.get("Plans", [])]
     return TreeNode(str_combined, children)
 
 # Function to read JSON file and convert to TreeNode
-def read_json_file(file_path):
-    with open(file_path, "r") as file:
-        json_obj = json.load(file)
-        return json_to_tree(json_obj)
+# def read_json_file(file_path):
+#     with open(file_path, "r") as file:
+#         json_obj = json.load(file)
+#         return json_to_tree(json_obj)
 
 # Custom Config class to handle tree nodes
 class TreeConfig(Config):
@@ -154,9 +168,20 @@ class TreeConfig(Config):
 #     tree2 = read_json_file(file2)
 
 def main(res1, res2):
+    red = "\033[91m"
+    white = "\033[0m"
+    yellow = "\033[93m"
+    # print(f"{yellow}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA{white}")
+    # clear the contexts of files query1.txt and query2.txt
+    with open("query1.txt", "w") as file:
+        file.write("")
+    with open("query2.txt", "w") as file:
+        file.write("")
+    # print(f"============={red} Calling json_to_tree for TREE1 {white}=============")
+    tree1 = json_to_tree(res1, "query1.txt")
     
-    tree1 = json_to_tree(res1)
-    tree2 = json_to_tree(res2)
+    # print(f"============={red} Calling json_to_tree for TREE2 {white}=============")
+    tree2 = json_to_tree(res2, "query2.txt")
     
     # Initialize APTED with the custom config
     apted = APTED(tree1, tree2, TreeConfig())
@@ -168,7 +193,6 @@ def main(res1, res2):
     # mapping = apted.compute_edit_mapping()
 
     # print(f"{ted}")
-    # print(f"Mapping: {mapping}")
     return ted
     # Uncomment the following line if you want to print the mapping
     # print(f"Mapping: {mapping}")

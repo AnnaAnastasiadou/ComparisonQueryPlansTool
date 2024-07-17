@@ -1,0 +1,16 @@
+{"Node Type": "Aggregate", "Filter": "None", "Group Key": "['n1.n_name', 'n2.n_name', '(EXTRACT(year FROM (lineitem.l_shipdate)))']", "Output": "None", "Hash Key": "None"}
+{"Node Type": "Sort", "Sort Key": "['n1.n_name', 'n2.n_name', '(EXTRACT(year FROM (lineitem.l_shipdate)))']", "Output": "None"}
+{"Node Type": "Hash Join", "Filter": "None", "Hash Cond": "(lineitem.l_suppkey = supplier.s_suppkey)", "Join Filter": "(((n1.n_name = 'FRANCE') AND (n2.n_name = 'GERMANY')) OR ((n1.n_name = 'GERMANY') AND (n2.n_name = 'FRANCE')))", "Join Type": "Inner", "Output": "None"}
+{"Node Type": "Nested Loop", "Filter": "None", "Join Filter": "None", "Join Type": "Inner", "Output": "None"}
+{"Node Type": "Nested Loop", "Filter": "None", "Join Filter": "None", "Join Type": "Inner", "Output": "None"}
+{"Node Type": "Hash Join", "Filter": "None", "Hash Cond": "(customer.c_nationkey = n2.n_nationkey)", "Join Filter": "None", "Join Type": "Inner", "Output": "None"}
+{"Node Type": "Seq Scan", "Filter": "None", "Relation Name": "customer", "Output": "None"}
+{"Node Type": "Hash", "Output": "None"}
+{"Node Type": "Seq Scan", "Filter": "((n_name = 'GERMANY') OR (n_name = 'FRANCE'))", "Relation Name": "nation", "Output": "None"}
+{"Node Type": "Index Scan", "Filter": "None", "Relation Name": "orders", "Index Name": "idx_orders_custkey", "Output": "None", "Index Cond": "(o_custkey = customer.c_custkey)"}
+{"Node Type": "Index Scan", "Filter": "((l_shipdate >= '1995-01-01') AND (l_shipdate <= '1996-12-31'))", "Relation Name": "lineitem", "Index Name": "idx_lineitem_orderkey", "Output": "None", "Index Cond": "(l_orderkey = orders.o_orderkey)"}
+{"Node Type": "Hash", "Output": "None"}
+{"Node Type": "Hash Join", "Filter": "None", "Hash Cond": "(supplier.s_nationkey = n1.n_nationkey)", "Join Filter": "None", "Join Type": "Inner", "Output": "None"}
+{"Node Type": "Seq Scan", "Filter": "None", "Relation Name": "supplier", "Output": "None"}
+{"Node Type": "Hash", "Output": "None"}
+{"Node Type": "Seq Scan", "Filter": "((n_name = 'FRANCE') OR (n_name = 'GERMANY'))", "Relation Name": "nation", "Output": "None"}

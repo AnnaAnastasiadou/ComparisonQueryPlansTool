@@ -11,6 +11,7 @@ class TreeNode:
 
     def __repr__(self):
         return f"TreeNode({self.label}, {self.children})"
+    
 
 # Function to convert JSON to TreeNode
 def json_to_tree(json_obj, file_name):
@@ -186,6 +187,7 @@ def main(res1, res2):
         file.write("")
     # print(f"============={red} Calling json_to_tree for TREE1 {white}=============")
     tree1 = json_to_tree(res1, "query1.txt")
+    # print(f">>>>>>>>>>>>>>>>>>>>>>>>tree: {tree1}")
     
     # print(f"============={red} Calling json_to_tree for TREE2 {white}=============")
     tree2 = json_to_tree(res2, "query2.txt")
@@ -200,7 +202,7 @@ def main(res1, res2):
     # mapping = apted.compute_edit_mapping()
 
     # print(f"{ted}")
-    return ted
+    return ted, tree1, tree2
     # Uncomment the following line if you want to print the mapping
     # print(f"Mapping: {mapping}")
 

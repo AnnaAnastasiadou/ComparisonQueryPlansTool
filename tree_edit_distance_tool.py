@@ -6,6 +6,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 from tree_edit_distance import main as compare
+from tree_visualisation import plot_trees
 import platform
 
 # DEBUG = False
@@ -74,10 +75,10 @@ def run_query(database, user, password, host, port, query, analyze=False, debug=
 def extract_filename(file_path):
     return os.path.basename(file_path)
 
-def intersection(lst1, lst2):
-    return list(set(lst1) & set(lst2))
+# def intersection(lst1, lst2):
+#     return list(set(lst1) & set(lst2))
 
-def visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug=False):
+# def visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug=False):
     def add_nodes(graph, plan, parent=None, prefix=""):
         node_id = prefix + str(id(plan))
         label = plan["Node Type"]
@@ -330,7 +331,7 @@ def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze
     with open(query_file2, 'r') as file:
         query2 = file.read().strip()
 
-
+    
     output_file1 = extract_filename(query_file1).replace('.sql', '_explain.json') if store else None
     output_file2 = extract_filename(query_file2).replace('.sql', '_explain.json') if store else None
     if output_file1 == output_file2 and output_file1 is not None:
@@ -345,7 +346,9 @@ def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze
         plan2 = result2[0][0][0]["Plan"]
 
         # Calculate Tree-Edit Distance
-        ted = compare(plan1, plan2)
+        comparison_result, tree1_json, tree2_json = compare(result1[0][0][0], result2[0][0][0])
+        # Calculate Tree-Edit Distance
+        # ted = compare(plan1, plan2)
 
         # separator = "/"
         # if platform.system() == "Windows":
@@ -356,12 +359,11 @@ def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze
         filename2 = extract_filename(query_file2).replace('.sql', '')
 
         if plot:
+            print("Plotting the execution plans")
+            plot_trees(tree1_json, tree2_json, f"execution_plans_{filename1}_{filename2}.png")
             # Visualize Combined Plans with Networkx
-            visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug) #qq[-1])
+            # visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug) #qq[-1])
 
-        comparison_result = compare(result1[0][0][0], result2[0][0][0])
-
-        
         json_output = {
             "query1": query_file1,
             "query2": query_file2,

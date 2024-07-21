@@ -284,5 +284,5 @@ plt.plot(lowess_curve[:, 0], lowess_curve[:, 1], color='green', label='LOWESS Cu
 plt.xlabel("Tree Edit Distance")
 plt.ylabel("Time Execution Difference (ms)")
 plt.legend()
-plt.savefig("Non_Linear_Fit.png")
+plt.savefig("BestNonLinearFit.png")
 plt.show()

@@ -1,0 +1,7 @@
+{"Node Type": "Aggregate", "Filter": "None", "Group Key": "['SUBSTRING(customer.c_phone FROM 1 FOR 2)']", "Output": "None", "Hash Key": "None"}
+{"Node Type": "Aggregate", "Filter": "None", "Group Key": "None", "Output": "None", "Hash Key": "None"}
+{"Node Type": "Seq Scan", "Filter": "((c_acctbal > 0.00) AND (SUBSTRING(c_phone FROM 1 FOR 2) = ANY ('{13,31,23,29,30,18,17}'[])))", "Relation Name": "customer", "Output": "None"}
+{"Node Type": "Sort", "Sort Key": "['SUBSTRING(customer.c_phone FROM 1 FOR 2)']", "Output": "None"}
+{"Node Type": "Nested Loop", "Filter": "None", "Join Filter": "None", "Output": "None", "Join Type": "Anti"}
+{"Node Type": "Seq Scan", "Filter": "((c_acctbal > $0) AND (SUBSTRING(c_phone FROM 1 FOR 2) = ANY ('{13,31,23,29,30,18,17}'[])))", "Relation Name": "customer", "Output": "None"}
+{"Node Type": "Index Only Scan", "Filter": "None", "Relation Name": "orders", "Output": "None", "Index Name": "idx_orders_custkey", "Index Cond": "(o_custkey = customer.c_custkey)"}

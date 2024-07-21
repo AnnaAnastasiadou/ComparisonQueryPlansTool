@@ -15,7 +15,7 @@ import platform
 
 def preprocess_query(query, analyze=False, debug=False):
     # Check if the query is a SELECT statement or similar DML statement
-    dml_statements = ['select', 'insert', 'update', 'delete']
+    dml_statements = ['select', 'insert', 'update', 'delete', 'with']
     if any(query.strip().lower().startswith(stmt) for stmt in dml_statements):
         explain_type = "EXPLAIN (ANALYZE, FORMAT JSON)" if analyze else "EXPLAIN (FORMAT JSON)" 
         query = f" {explain_type} {query}"
@@ -37,6 +37,9 @@ def run_query(database, user, password, host, port, query, analyze=False, debug=
         
         # original_query = query
         for q in query.split(";"):
+            # q = q.strip()
+            if not q:
+                continue
             q = preprocess_query(q, analyze, debug)
             if debug:
                 print(f"Executing query:<{q}>")
@@ -60,11 +63,13 @@ def run_query(database, user, password, host, port, query, analyze=False, debug=
     except Exception as error:
         print(f"Error: {error}")
     finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
-        return result
+        # if cursor:
+        #     cursor.close()
+        # if connection:
+        #     connection.close()
+        # return result
+        cursor.close()
+        connection.close()
 
 def extract_filename(file_path):
     return os.path.basename(file_path)

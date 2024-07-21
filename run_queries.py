@@ -18,6 +18,14 @@ def compare_queries_in_directories(directory1, directory2, plot=False, analyze=F
     # print(directory1.split('/')[1])
 
     results = []
+
+    skip_file_numbers = {1,11,74,4}
+
+    # Construct the set of filenames to skip
+    skip_files = {f"query{num}.sql" for num in skip_file_numbers}
+  
+    # Remove the skip files from the common files set
+    common_files -= skip_files
     print(common_files)
     for file in common_files:
         file_path1 = os.path.join(directory1, file)

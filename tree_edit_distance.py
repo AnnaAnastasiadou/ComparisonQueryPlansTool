@@ -42,7 +42,7 @@ def json_to_tree(json_obj, file_name):
     attributes = ['CTE Name', 'Cache Key', 'Filter', 'Group Key', 'Hash Cond',
        'Hash Key', 'Index Cond', 'Index Name', 'Join Filter', 'Join Type',
        'Merge Cond', 'Output', 'Recheck Cond', 'Relation Name',
-       'Sort Key']
+       'Sort Key', 'One-Time Filter']
 
     for attr in attributes:
         if attr not in json_obj:
@@ -103,7 +103,7 @@ def json_to_tree(json_obj, file_name):
             str_combined += ', "Group Key": "' + str(json_obj["Group Key"]) + '"'
             str_combined += ', "Hash Key": "' + str(json_obj["Hash Key"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
-        case "Hash"|"Limit"| "Materialize"| "Unique":
+        case "Hash"|"Limit"| "Materialize"| "Unique"| "WindowAgg"| "SetOp":
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
         case "Memoize":
             str_combined += ', "Cache Key": "' + str(json_obj["Cache Key"]) + '"'
@@ -117,6 +117,13 @@ def json_to_tree(json_obj, file_name):
         case "Subquery Scan":
             str_combined += ', "Filter": "' + str(json_obj["Filter"]) + '"'
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+        case "Append"| "BitmapAnd"| "BitmapOr":
+            str_combined = str_combined
+        case "Result":
+            str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
+            str_combined += ', "One-Time Filter": "' + str(json_obj["One-Time Filter"]) + '"'
+        case "Merge Append":
+            str_combined = ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
         case _:
             raise(Exception(f"{red}Unsupported Node Type: [{label}]{white}"))
         

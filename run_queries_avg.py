@@ -15,12 +15,30 @@ def compare_queries_in_directories(directory1, directory2, plot=False, analyze=F
     sql_files1 = {file for file in files1 if file.endswith('.sql')}
     sql_files2 = {file for file in files2 if file.endswith('.sql')}
     common_files = sql_files1.intersection(sql_files2)
+    # common_files = {'query1.sql', 'query11.sql', 'query74.sql', 'query4.sql'}
+
+    # # List of file numbers to skip
+    skip_file_numbers = {1,11,74,4}
+    # 91, 52, 41, 2, 18, 26, 92, 13, 42, 59, 73, 
+    # 36, 87, 53, 84, 21, 99, 67, 79, 20, 19, 64, 
+    # 85, 69, 88, 57, 62, 68, 5, 89, 81, 17, 75, 
+    # 29, 3, 46, 27, 77, 35, 66, 6, 14, 28, 83, 70, 49, 56}
+
+    # Construct the set of filenames to skip
+    skip_files = {f"query{num}.sql" for num in skip_file_numbers}
+    # Define the files to skip
+    # skip_files = {'query1.sql', 'query11.sql', 'query74.sql'}
+
+    # Remove the skip files from the common files set
+    common_files -= skip_files
 
     results = []
     if analyze:
         num_runs = 4
     else:
         num_runs = 1
+    
+    print(common_files)
 
     for file in common_files:
         print(f"Executing query {file}")

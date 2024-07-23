@@ -4,10 +4,8 @@ import sys
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
-from networkx.drawing.nx_agraph import graphviz_layout
 from tree_edit_distance import main as compare
 from tree_visualisation import plot_trees
-import platform
 
 # DEBUG = False
 # STORE = False
@@ -75,225 +73,6 @@ def run_query(database, user, password, host, port, query, analyze=False, debug=
 def extract_filename(file_path):
     return os.path.basename(file_path)
 
-# def intersection(lst1, lst2):
-#     return list(set(lst1) & set(lst2))
-
-# def visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug=False):
-    def add_nodes(graph, plan, parent=None, prefix=""):
-        node_id = prefix + str(id(plan))
-        label = plan["Node Type"]
-        graph.add_node(node_id, label=label)
-        if parent:
-            graph.add_edge(parent, node_id)
-        for i, child in enumerate(plan.get("Plans", [])):
-            add_nodes(graph, child, node_id, prefix=f"{prefix}{i}_")
-
-    # For every node in the left tree call the function to find the matching nodes in the right tree   
-    def find_matching_nodes(node, tree, other_tree, dictionary1, dictionary2, sequences1, sequences2):  
-        # Iterate over all possible nodes in the right tree in a reverse topological order
-        for other_node in reversed(list(nx.topological_sort(other_tree))):
-            if debug:
-                print(f"Currently node: {node}")
-            # Check if the labels match
-            if other_tree.nodes[other_node]['label'] == tree.nodes[node]['label'] and other_tree.out_degree(other_node) == tree.out_degree(node):
-                if debug:
-                    print(f"Testing for P1 node: {node} to match with {other_node}")
-                # If the node is a leaf node for both trees then it is a match
-                if tree.out_degree(node) == 0 and other_tree.out_degree(other_node) == 0:
-                    if debug:
-                        print(f"\t [+] Matched: {node} with {other_node}")
-                        print(f"Node: {node} has sequence>>> {sequences1[node]}")
-                    # Add the matching nodes to the dictionary as potential matches for eachother
-                    dictionary1.setdefault(node, []).append(other_node)
-                    dictionary2.setdefault(other_node, []).append(node)
-                    # For a leaf node the sequence of matches is just itself i.e. 1
-                    sequences1[node] = 1
-                    sequences2[other_node] = 1
-                    continue
-                # For intermediary nodes check if the children match
-                children = tree.successors(node)
-                other_children = other_tree.successors(other_node)
-                # Initially assume that the nodes can match unless we find a child that doesn't match
-                can_match = True
-                # Concurrently iterate over the children in a leftmost-first manner
-                c1 = next(children)
-                c2 = next(other_children)
-                if debug:
-                    print(f"\t Started Testing children of {node} with {other_node}")
-                # Repeat until I reach the end of the children of the node or until I find a child that doesn't match
-                while c1!=None and c2!=None:
-                    if debug:
-                        print(f"\t Testing children from P1: {c1} with children from P2: {c2}")
-                    # If both children have potential matches in their corresponding dictionaries
-                    if c1 in dictionary1 and c2 in dictionary2:
-                        # Check if the child of the left tree is NOT a potential match with the corresponding child in the right tree and vice versa
-                        if (c2 not in dictionary1[c1]) or (c1 not in dictionary2[c2]):
-                            can_match = False
-                            if debug:
-                                print(f"\t [-] Failed to match {c1} with {c2}")
-                            break
-                    else:
-                        # We can't match the children if one of them doesn't have a potential match
-                        can_match = False
-                        if debug:
-                            print(f"\t [-] Testing intermediary with final node: {c1} with {c2} failed")
-                        break
-                    # Move to the next children
-                    c1 = next(children, None)
-                    c2 = next(other_children, None)
-                if debug:
-                    print(f"\t Finished testing children of {node} with {other_node}")
-                # If all children matched then the nodes can match
-                if can_match:
-                    # Calculate the sequence of matches for the node
-                    sequential_matches = 1
-                    # Add the amount of matches of the children to the amount of matches of the current node +1
-                    for child in tree.successors(node):
-                        # Make sure that the child has been matched
-                        assert child in sequences1
-                        sequential_matches += sequences1[child]
-                    dictionary1.setdefault(node,[]).append(other_node)
-                    dictionary2.setdefault(other_node,[]).append(node)
-                    if debug:
-                        print(f"Node: {node} has sequence>>> {sequential_matches}")
-                    # Add the number of matches to the sequence
-                    sequences1[node] = sequential_matches
-                    sequences2[other_node] = sequential_matches
-                    if debug:
-                        print(f"\t [+] Matched: {node} with {other_node}")
-        # Return the updated dictionaries and sequences
-        return dictionary1, dictionary2, sequences1, sequences2
-    '''
-        Downpropagate the matches from the root to the leaves
-        Given a node in the left tree, find the corresponding node in the right tree
-        If the node has no matches then color it red
-    '''
-    def downpropagate(node1, tree1, tree2, dictionary1, dictionary2, sequences1, sequences2):
-        # Firstly, check if the node has any potential matches
-        if node1 in dictionary1:
-            can_match = False
-            maxn = 0
-            potential_match = None
-            for vertex in dictionary1[node1]:
-                # From the list of potential matches in dictionary choose the one with the highest amount of matches
-                if vertex in dictionary2 and sequences2[vertex] > maxn :
-                    maxn = sequences2[vertex]
-                    potential_match = vertex
-                    can_match = True
-                    if debug:
-                        print(f"Potential match: {node1} with {potential_match} with maxn {maxn}")
-            if can_match:
-                if debug:
-                    print(f"Matched {node1} with {potential_match}")
-                sequences2.pop(potential_match)
-                del dictionary1[node1]
-                del dictionary2[potential_match]
-            else:
-                try:
-                    tree1.nodes[node1]['color'] = 'red'
-                    tree2.nodes[potential_match]['color'] = 'red'
-                except:
-                    if debug:
-                        print(f"Failed to color {node1} with {potential_match}")
-        else:
-            if debug:
-                print(f"Failed to match {node1} because no [matches found]")
-            tree1.nodes[node1]['color'] = 'red'
-            if debug:
-                print(f"Failed to match {node1} because no [matches found]")
-        return sequences1, sequences2, dictionary1, dictionary2
-    '''
-        Use this function to give the children of a node the same sequence of matches as the parent node
-        Do this so that reguardless of where a node is in any sequence we can ask for the length of the sequence it belongs to
-        By doing that we can start iterating over the nodes that belong in the highest sequence of matches
-    '''
-    def push_sequences_to_children(tree, sequences):
-        # Start from the root node and go down the tree
-        for node in (list(nx.topological_sort(tree))):
-            # For all non-leaf nodes push the sequence of matches to the children
-            if tree.out_degree(node) > 0:
-                children = tree.successors(node)
-                for child in children:
-                    # If the node belongs in any sequence of matches
-                    if node in sequences:
-                        # Then all of its children belong in the same sequence
-                        sequences[child] = sequences[node]
-                        if debug:
-                            print(f"Node: {child} has sequence: {sequences[child]}")
-
-    '''
-        ENTRY POINT!!!
-        Compare the matches of the nodes in the left tree with the nodes in the right tree
-        Given tree1 and tree2, the function colors the nodes that don't have a match in the other tree
-    '''
-    def compare_nodes(tree1, tree2):
-        # Holds potential matches for each node in the left tree
-        dictionary1 = {}
-        # Holds potential matches for each node in the right tree
-        dictionary2 = {}
-
-        # Holds the amount of matches for each node in the left tree
-        sequences1 = {}
-        # Holds the amount of matches for each node in the right tree
-        sequences2 = {}
-
-        # Iterate over the nodes in the left tree in a reverse topological order
-        # i.e. starting from the leaves and going up to the root
-        for node in reversed(list(nx.topological_sort(tree1))):
-            if debug:
-                print(f"Node: {node}")
-            # For every node in the left tree find the matching nodes in the right tree
-            dictionary1, dictionary2, sequences1, sequences2 = find_matching_nodes(node, tree1, tree2, dictionary1, dictionary2, sequences1, sequences2)
-
-        if debug:
-            print(f"Dictionary 1: {dictionary1}")
-            print(f"Dictionary 2: {dictionary2}")    
-
-        
-        push_sequences_to_children(tree1, sequences1)
-        push_sequences_to_children(tree2, sequences2)
-        # Mark nodes with no matches as red
-        for nodes in tree1.nodes - sequences1:
-            sequences1[nodes] = 0
-        for nodes in tree2.nodes - sequences2:
-            sequences2[nodes] = 0
-        # sort sequences1 and sequences2 based on the amount of matches of each node
-        # use this information to dwonpropagate the matches starting from the nodes with the highest amount of matches
-        sequences1 = {k: v for k, v in sorted(sequences1.items(), key=lambda item: item[1], reverse=True)}
-        sequences2 = {k: v for k, v in sorted(sequences2.items(), key=lambda item: item[1], reverse=True)}
-        for node in sequences1:
-            sequences1, sequences2, dictionary1, dictionary2 = downpropagate(node, tree1, tree2, dictionary1, dictionary2, sequences1, sequences2)
-        for node in sequences2:
-            downpropagate(node, tree2, tree1, dictionary2, dictionary1, sequences2, sequences1)
-
-    G1 = nx.DiGraph()
-    G2 = nx.DiGraph()
-
-    add_nodes(G1, plan1, prefix="P1_")
-    add_nodes(G2, plan2, prefix="P2_")
-
-    compare_nodes(G1, G2)
-
-    pos1 = graphviz_layout(G1, prog='dot')
-    pos2 = graphviz_layout(G2, prog='dot')
-
-    plt.figure(figsize=(15, 10))
-
-    plt.subplot(121)
-    labels1 = nx.get_node_attributes(G1, 'label')
-    colors1 = [G1.nodes[node].get('color', 'green') for node in G1]
-    nx.draw(G1, pos1, labels=labels1, with_labels=True, node_size=3000, node_color=colors1, font_size=10, font_weight='bold', arrowsize=20)
-    plt.title(f"Execution Plan 1: {filename1}")
-
-    plt.subplot(122)
-    labels2 = nx.get_node_attributes(G2, 'label')
-    colors2 = [G2.nodes[node].get('color', 'green') for node in G2]
-    nx.draw(G2, pos2, labels=labels2, with_labels=True, node_size=3000, node_color=colors2, font_size=10, font_weight='bold', arrowsize=20)
-    plt.title(f"Execution Plan 2: {filename2}")
-
-    plt.savefig(f"comparison_{filename1}_{filename2}.png")
-    plt.show()
-
 def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze=False):
     # DATABASE = "tpch"
     # USER = "postgres"
@@ -346,7 +125,7 @@ def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze
         plan2 = result2[0][0][0]["Plan"]
 
         # Calculate Tree-Edit Distance
-        comparison_result, tree1_json, tree2_json = compare(result1[0][0][0], result2[0][0][0])
+        comparison_result, tree1_json, tree2_json, edit_mapping = compare(result1[0][0][0], result2[0][0][0])
         # Calculate Tree-Edit Distance
         # ted = compare(plan1, plan2)
 
@@ -360,7 +139,7 @@ def main(query_file1, query_file2, plot=False, debug=False, store=False, analyze
 
         if plot:
             print("Plotting the execution plans")
-            plot_trees(tree1_json, tree2_json, f"execution_plans_{filename1}_{filename2}.png")
+            plot_trees(tree1_json, tree2_json, edit_mapping,f"execution_plans_{filename1}_{filename2}.png")
             # Visualize Combined Plans with Networkx
             # visualize_plan_with_networkx(plan1, plan2, filename1, filename2, debug) #qq[-1])
 

@@ -124,8 +124,9 @@ def json_to_tree(json_obj, file_name):
             str_combined += ', "Output": "' + str(json_obj["Output"]) + '"'
             str_combined += ', "One-Time Filter": "' + str(json_obj["One-Time Filter"]) + '"'
         case "Merge Append":
-            str_combined = ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
+            str_combined += ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
         case _:
+
             raise(Exception(f"{red}Unsupported Node Type: [{label}]{white}"))
         
     str_combined += "}"
@@ -146,7 +147,7 @@ def json_to_tree(json_obj, file_name):
     str_combined = re.sub(r'\'([0-9]+\.[0-9]+)\'', r'\1', str_combined)
     str_combined = re.sub(r'\'([0-9]+)\'', r'\1', str_combined)
     
-    # print(str_combined)
+    # print(f">>>>>>>>>>{str_combined}")
     with open(file_name, "a", encoding="utf-8") as file:
         file.write(str_combined + "\n")
 
@@ -197,12 +198,16 @@ def main(res1, res2):
 
     # Compute the tree edit distance
     ted = apted.compute_edit_distance()
-    # print(ted.delta)
+    # for (a,b) in ted.compute_edit_mapping():
+    #     print(f"{a} {red}---------->{white} {b}")
+
+    edit_mapping = ted.compute_edit_mapping()
+
     ted = ted.result
     # mapping = apted.compute_edit_mapping()
 
     # print(f"{ted}")
-    return ted, tree1, tree2
+    return ted, tree1, tree2, edit_mapping
     # Uncomment the following line if you want to print the mapping
     # print(f"Mapping: {mapping}")
 

@@ -144,7 +144,7 @@ def json_to_tree(json_obj):
             label += ', "Sort Key": "' + str(json_obj["Sort Key"]) + '"'
         case _:
             # Raise an exception if the node type is unsupported
-            raise(Exception(f"{red}Unsupported Node Type: [{label}]{white}"))
+            raise(Exception(f"Unsupported Node Type: [label]"))
 
     # print(label) 
     
